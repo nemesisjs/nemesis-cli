@@ -1,0 +1,9 @@
+import { NemesisApp } from '@nemesisjs/http';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NemesisApp.createHttp(AppModule);
+  await app.listen(3000);
+}
+
+bootstrap();

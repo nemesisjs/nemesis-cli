@@ -4,8 +4,11 @@
  * Generates controllers, services, and modules from templates.
  */
 
-import { mkdir, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { mkdir, writeFile, readFile } from 'fs/promises';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+// @ts-ignore
+import mustache from 'mustache';
 import { toPascalCase, toKebabCase } from '../utils/naming.js';
 
 type GenerateType = 'controller' | 'service' | 'module';
@@ -49,23 +52,11 @@ export class GenerateCommand {
     const dir = join(process.cwd(), 'src', kebab);
     await mkdir(dir, { recursive: true });
 
-    const content = `import { Controller, Get, Inject } from '@nemesisjs/common';
-import type { RequestContext } from '@nemesisjs/http';
-
-@Controller('/${kebab}')
-export class ${pascal}Controller {
-  @Get('/')
-  findAll(ctx: RequestContext) {
-    return ctx.json({ message: '${pascal} controller works!' });
-  }
-
-  @Get('/:id')
-  findOne(ctx: RequestContext) {
-    const id = ctx.getParam('id');
-    return ctx.json({ id, message: 'Found ${pascal.toLowerCase()}' });
-  }
-}
-`;
+    const content = await this.renderTemplate('controller.ts.mustache', {
+      pascalName: pascal,
+      kebabName: kebab,
+      pascalNameLower: pascal.toLowerCase()
+    });
 
     const filePath = join(dir, `${kebab}.controller.ts`);
     await writeFile(filePath, content);
@@ -76,31 +67,10 @@ export class ${pascal}Controller {
     const dir = join(process.cwd(), 'src', kebab);
     await mkdir(dir, { recursive: true });
 
-    const content = `import { Injectable } from '@nemesisjs/common';
-
-@Injectable()
-export class ${pascal}Service {
-  findAll() {
-    return [];
-  }
-
-  findOne(id: string) {
-    return { id };
-  }
-
-  create(data: any) {
-    return { ...data, id: crypto.randomUUID() };
-  }
-
-  update(id: string, data: any) {
-    return { ...data, id };
-  }
-
-  remove(id: string) {
-    return { id, deleted: true };
-  }
-}
-`;
+    const content = await this.renderTemplate('service.ts.mustache', {
+      pascalName: pascal,
+      kebabName: kebab
+    });
 
     const filePath = join(dir, `${kebab}.service.ts`);
     await writeFile(filePath, content);
@@ -112,19 +82,10 @@ export class ${pascal}Service {
     await mkdir(dir, { recursive: true });
 
     // Generate module + controller + service
-    const moduleContent = `import { Module } from '@nemesisjs/common';
-import { ${pascal}Controller } from './${kebab}.controller';
-import { ${pascal}Service } from './${kebab}.service';
-
-@Module({
-  controllers: [${pascal}Controller],
-  providers: [
-    { provide: '${pascal}Service', useClass: ${pascal}Service },
-  ],
-  exports: ['${pascal}Service'],
-})
-export class ${pascal}Module {}
-`;
+    const moduleContent = await this.renderTemplate('module.ts.mustache', {
+      pascalName: pascal,
+      kebabName: kebab
+    });
 
     await writeFile(join(dir, `${kebab}.module.ts`), moduleContent);
     console.log(`CREATE src/${kebab}/${kebab}.module.ts`);
@@ -132,5 +93,12 @@ export class ${pascal}Module {}
     // Also generate controller and service
     await this.generateController(pascal, kebab);
     await this.generateService(pascal, kebab);
+  }
+
+  private async renderTemplate(templateName: string, data: any): Promise<string> {
+    const currentDir = dirname(fileURLToPath(import.meta.url));
+    const templatePath = join(currentDir, '..', 'templates', 'generate', templateName);
+    const template = await readFile(templatePath, 'utf8');
+    return mustache.render(template, data);
   }
 }

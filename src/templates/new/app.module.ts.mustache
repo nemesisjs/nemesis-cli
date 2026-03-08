@@ -1,0 +1,11 @@
+import { Module } from '@nemesisjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+@Module({
+  controllers: [AppController],
+  providers: [
+    { provide: 'AppService', useClass: AppService },
+  ],
+})
+export class AppModule {}

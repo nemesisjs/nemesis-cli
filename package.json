@@ -16,14 +16,16 @@
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target bun",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun && cp -r src/templates dist/templates",
     "test": "bun test"
   },
   "dependencies": {
-    "@nemesisjs/common": "workspace:*"
+    "@nemesisjs/common": "workspace:*",
+    "mustache": "^4.2.0"
   },
   "devDependencies": {
     "typescript": "^5.7.0",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/mustache": "^4.2.5"
   }
 }

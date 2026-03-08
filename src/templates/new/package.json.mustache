@@ -1,0 +1,21 @@
+{
+  "name": "{{name}}",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "bun --hot src/main.ts",
+    "start": "bun src/main.ts",
+    "build": "bun build ./src/main.ts --outdir ./dist --target bun",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@nemesisjs/common": "^0.1.0",
+    "@nemesisjs/core": "^0.1.0",
+    "@nemesisjs/http": "^0.1.0",
+    "@nemesisjs/platform-bun": "^0.1.0"
+  },
+  "devDependencies": {
+    "@nemesisjs/testing": "^0.1.0",
+    "typescript": "^5.7.0",
+    "@types/bun": "latest"
+  }
+}

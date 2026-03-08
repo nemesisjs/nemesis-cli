@@ -1,0 +1,12 @@
+import { Module } from '@nemesisjs/common';
+import { {{pascalName}}Controller } from './{{kebabName}}.controller';
+import { {{pascalName}}Service } from './{{kebabName}}.service';
+
+@Module({
+  controllers: [{{pascalName}}Controller],
+  providers: [
+    { provide: '{{pascalName}}Service', useClass: {{pascalName}}Service },
+  ],
+  exports: ['{{pascalName}}Service'],
+})
+export class {{pascalName}}Module {}

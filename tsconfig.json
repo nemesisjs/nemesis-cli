@@ -1,12 +1,15 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../nemesisjs/tsconfig.json",
   "compilerOptions": {
+    "module": "ES2022",
+    "target": "ES2022",
+    "moduleResolution": "bundler",
     "outDir": "./dist",
     "composite": true
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "**/*.test.ts"],
   "references": [
-    { "path": "../common" }
+    { "path": "../nemesisjs/packages/common" }
   ]
 }

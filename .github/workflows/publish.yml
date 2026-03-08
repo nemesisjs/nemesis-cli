@@ -9,8 +9,6 @@ jobs:
     if: github.repository_owner == github.actor
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: cli
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -25,18 +23,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd cli
           sed -i 's/"@nemesisjs\/common": "workspace:\*"/"@nemesisjs\/common": "latest"/g' package.json
           bun install --no-cache
 
       - name: Build CLI
         run: |
-          cd cli
           bun run build
 
       - name: Publish CLI
         run: |
-          cd cli
           VERSION=$(grep '"version"' package.json | head -n 1 | sed -E 's/.*"version": "(.*)",/\1/')
           sed -i "s/\"workspace:\*\"/\"^${VERSION}\"/g" package.json
           npm publish --access public || echo "Publishing failed (version may already exist)"

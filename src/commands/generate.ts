@@ -10,6 +10,7 @@ import { mkdir, writeFile, readFile, readdir } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import mustache from 'mustache';
+import chalk from 'chalk';
 import { toPascalCase, toKebabCase } from '../utils/naming.js';
 import { addDeclarationToModule } from '../utils/ast.js';
 
@@ -34,7 +35,7 @@ export class GenerateCommand {
     const type = TYPE_ALIASES[typeArg.toLowerCase()];
     if (!type) {
       console.error(
-        `Unknown generate type: "${typeArg}". Valid types: controller (co), service (s), module (mo)`,
+        chalk.red(`Error: Unknown generate type: "${typeArg}". Valid types: controller (co), service (s), module (mo)`),
       );
       process.exit(1);
     }
@@ -70,13 +71,13 @@ export class GenerateCommand {
     // Main file
     const content = await this.renderTemplate('controller.ts.mustache', data);
     await writeFile(join(dir, `${kebab}.controller.ts`), content);
-    console.log(`  CREATE src/${kebab}/${kebab}.controller.ts`);
+    console.log(chalk.green(`  CREATE src/${kebab}/${kebab}.controller.ts`));
 
     // Spec file
     if (!options.noSpec) {
       const specContent = await this.renderTemplate('controller.spec.ts.mustache', data);
       await writeFile(join(dir, `${kebab}.controller.spec.ts`), specContent);
-      console.log(`  CREATE src/${kebab}/${kebab}.controller.spec.ts`);
+      console.log(chalk.green(`  CREATE src/${kebab}/${kebab}.controller.spec.ts`));
     }
 
     // Register in nearest module
@@ -88,7 +89,7 @@ export class GenerateCommand {
         `./${kebab}.controller`,
         'controller',
       );
-      console.log(`  UPDATE ${modulePath.replace(process.cwd() + '/', '')}`);
+      console.log(chalk.yellow(`  UPDATE ${modulePath.replace(process.cwd() + '/', '')}`));
     }
   }
 
@@ -105,13 +106,13 @@ export class GenerateCommand {
     // Main file
     const content = await this.renderTemplate('service.ts.mustache', data);
     await writeFile(join(dir, `${kebab}.service.ts`), content);
-    console.log(`  CREATE src/${kebab}/${kebab}.service.ts`);
+    console.log(chalk.green(`  CREATE src/${kebab}/${kebab}.service.ts`));
 
     // Spec file
     if (!options.noSpec) {
       const specContent = await this.renderTemplate('service.spec.ts.mustache', data);
       await writeFile(join(dir, `${kebab}.service.spec.ts`), specContent);
-      console.log(`  CREATE src/${kebab}/${kebab}.service.spec.ts`);
+      console.log(chalk.green(`  CREATE src/${kebab}/${kebab}.service.spec.ts`));
     }
 
     // Register in nearest module
@@ -123,7 +124,7 @@ export class GenerateCommand {
         `./${kebab}.service`,
         'provider',
       );
-      console.log(`  UPDATE ${modulePath.replace(process.cwd() + '/', '')}`);
+      console.log(chalk.yellow(`  UPDATE ${modulePath.replace(process.cwd() + '/', '')}`));
     }
   }
 
@@ -140,13 +141,13 @@ export class GenerateCommand {
     // Module file
     const moduleContent = await this.renderTemplate('module.ts.mustache', data);
     await writeFile(join(dir, `${kebab}.module.ts`), moduleContent);
-    console.log(`  CREATE src/${kebab}/${kebab}.module.ts`);
+    console.log(chalk.green(`  CREATE src/${kebab}/${kebab}.module.ts`));
 
     // Module spec
     if (!options.noSpec) {
       const specContent = await this.renderTemplate('module.spec.ts.mustache', data);
       await writeFile(join(dir, `${kebab}.module.spec.ts`), specContent);
-      console.log(`  CREATE src/${kebab}/${kebab}.module.spec.ts`);
+      console.log(chalk.green(`  CREATE src/${kebab}/${kebab}.module.spec.ts`));
     }
 
     // Generate controller + service (they auto-register into the new module)
@@ -162,7 +163,7 @@ export class GenerateCommand {
         `./${kebab}/${kebab}.module`,
         'import',
       );
-      console.log(`  UPDATE ${parentModulePath.replace(process.cwd() + '/', '')}`);
+      console.log(chalk.yellow(`  UPDATE ${parentModulePath.replace(process.cwd() + '/', '')}`));
     }
   }
 

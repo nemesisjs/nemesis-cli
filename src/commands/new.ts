@@ -12,7 +12,9 @@ import { mkdir, writeFile, readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import mustache from 'mustache';
-import { toPascalCase, toKebabCase } from '../utils/naming.js';
+import chalk from 'chalk';
+import figlet from 'figlet';
+import { toKebabCase } from '../utils/naming.js';
 
 export interface NewOptions {
   /** When true, skip generating the tests/ scaffold. */
@@ -22,10 +24,18 @@ export interface NewOptions {
 export class NewCommand {
   async execute(projectName: string, options: NewOptions): Promise<void> {
     const kebabName = toKebabCase(projectName);
-    const _pascalName = toPascalCase(projectName); // available for templates if needed
     const dir = join(process.cwd(), kebabName);
 
-    console.log(`\n  Creating NemesisJS project: ${kebabName}\n`);
+    console.log(
+      chalk.cyan(
+        figlet.textSync('NEMESIS', {
+          font: 'Slant',
+          horizontalLayout: 'default',
+          verticalLayout: 'default',
+        })
+      )
+    );
+    console.log(chalk.bold.blue(`\n🚀 Scaffolding new NemesisJS project: ${chalk.green(kebabName)}\n`));
 
     // ── Directories ──────────────────────────────────────────────────────────
     await mkdir(join(dir, 'src'), { recursive: true });
@@ -56,24 +66,25 @@ export class NewCommand {
     }
 
     // ── Summary ──────────────────────────────────────────────────────────────
-    console.log(`  Created  ${kebabName}/`);
-    console.log(`  Created  package.json`);
-    console.log(`  Created  tsconfig.json`);
-    console.log(`  Created  eslint.config.mjs`);
-    console.log(`  Created  .prettierrc`);
-    console.log(`  Created  .gitignore`);
-    console.log(`  Created  src/main.ts`);
-    console.log(`  Created  src/app.module.ts`);
-    console.log(`  Created  src/app.controller.ts`);
-    console.log(`  Created  src/app.service.ts`);
+    console.log(chalk.green(`  ✔ Created directory: ${kebabName}/`));
+    console.log(chalk.gray(`  - package.json`));
+    console.log(chalk.gray(`  - tsconfig.json`));
+    console.log(chalk.gray(`  - eslint.config.mjs`));
+    console.log(chalk.gray(`  - .prettierrc`));
+    console.log(chalk.gray(`  - .gitignore`));
+    console.log(chalk.gray(`  - src/main.ts`));
+    console.log(chalk.gray(`  - src/app.module.ts`));
+    console.log(chalk.gray(`  - src/app.controller.ts`));
+    console.log(chalk.gray(`  - src/app.service.ts`));
     if (!options.noTest) {
-      console.log(`  Created  tests/app.test.ts`);
+      console.log(chalk.gray(`  - tests/app.test.ts`));
     }
 
-    console.log(`\nNext steps:\n`);
-    console.log(`  cd ${kebabName}`);
-    console.log(`  bun install`);
-    console.log(`  bun run dev`);
+    console.log(chalk.bold.blue(`\n✨ Project successfully created!\n`));
+    console.log(`Next steps:\n`);
+    console.log(chalk.cyan(`  $ cd ${kebabName}`));
+    console.log(chalk.cyan(`  $ bun install`));
+    console.log(chalk.cyan(`  $ bun run start:dev`));
     console.log('');
   }
 

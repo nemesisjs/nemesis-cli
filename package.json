@@ -16,7 +16,7 @@
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target bun && cp -r src/templates dist/templates",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun && cp -rf src/templates dist/templates",
     "test": "bun test"
   },
   "dependencies": {

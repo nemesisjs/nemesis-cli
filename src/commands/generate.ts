@@ -4,14 +4,12 @@
  * Generates controllers, services, and modules from templates.
  */
 
-import { mkdir, writeFile, readFile } from 'fs/promises';
+import { mkdir, writeFile, readFile, readdir } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-// @ts-ignore
 import mustache from 'mustache';
 import { toPascalCase, toKebabCase } from '../utils/naming.js';
 import { addDeclarationToModule } from '../utils/ast.js';
-import { readdir } from 'fs/promises';
 
 type GenerateType = 'controller' | 'service' | 'module';
 

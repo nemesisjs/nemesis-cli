@@ -7,7 +7,6 @@
 import { mkdir, writeFile, readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-// @ts-ignore
 import mustache from 'mustache';
 import { toPascalCase, toKebabCase } from '../utils/naming.js';
 

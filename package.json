@@ -1,6 +1,7 @@
 {
   "name": "@nemesisjs/cli",
   "version": "0.1.0",
+  "type": "module",
   "description": "NemesisJS CLI - scaffolding and code generation",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nemesisjs/nemesis/main/assets/nemesis-logo.png" width="150" alt="NemesisJS Logo" />
+  <img src="https://avatars.githubusercontent.com/u/266423123?s=400&u=35dac8e91254a43714fd41f21c00236b0d3ed4b2&v=4" width="150" alt="NemesisJS Logo" />
 </p>
 
 <h1 align="center">@nemesisjs/cli</h1>

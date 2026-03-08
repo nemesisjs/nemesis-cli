@@ -26,6 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd cli
+          sed -i 's/"@nemesisjs\/common": "workspace:\*"/"@nemesisjs\/common": "latest"/g' package.json
           bun install --no-cache
 
       - name: Build CLI

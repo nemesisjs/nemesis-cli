@@ -1,0 +1,51 @@
+name: Publish CLI
+
+on:
+    workflow_dispatch:
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        if: github.repository_owner == github.actor
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  repository: nemesisjs/nemesisjs
+                  path: nemesisjs
+            - uses: actions/checkout@v4
+              with:
+                  repository: nemesisjs/validation
+                  path: validation
+            - uses: actions/checkout@v4
+              with:
+                  path: cli
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v1
+              with:
+                  bun-version: latest
+
+            - name: Setup Node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: "20.x"
+                  registry-url: "https://registry.npmjs.org"
+
+            - name: Install dependencies
+              run: |
+                  cd nemesisjs
+                  bun install --no-cache
+
+            - name: Build CLI
+              run: |
+                  cd cli
+                  bun run build
+
+            - name: Publish CLI
+              run: |
+                  cd cli
+                  VERSION=$(grep '"version"' package.json | head -n 1 | sed -E 's/.*"version": "(.*)",/\1/')
+                  sed -i "s/\"workspace:\*\"/\"^${VERSION}\"/g" package.json
+                  npm publish --access public || echo "Publishing failed (version may already exist)"
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

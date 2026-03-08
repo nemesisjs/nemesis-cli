@@ -10,6 +10,8 @@ import { fileURLToPath } from 'url';
 // @ts-ignore
 import mustache from 'mustache';
 import { toPascalCase, toKebabCase } from '../utils/naming.js';
+import { addDeclarationToModule } from '../utils/ast.js';
+import { readdir } from 'fs/promises';
 
 type GenerateType = 'controller' | 'service' | 'module';
 
@@ -61,6 +63,12 @@ export class GenerateCommand {
     const filePath = join(dir, `${kebab}.controller.ts`);
     await writeFile(filePath, content);
     console.log(`CREATE src/${kebab}/${kebab}.controller.ts`);
+
+    const modulePath = await this.findClosestModule(dir);
+    if (modulePath) {
+      await addDeclarationToModule(modulePath, `${pascal}Controller`, `./${kebab}.controller`, 'controller');
+      console.log(`UPDATE ${modulePath.replace(process.cwd() + '/', '')}`);
+    }
   }
 
   private async generateService(pascal: string, kebab: string): Promise<void> {
@@ -75,6 +83,12 @@ export class GenerateCommand {
     const filePath = join(dir, `${kebab}.service.ts`);
     await writeFile(filePath, content);
     console.log(`CREATE src/${kebab}/${kebab}.service.ts`);
+
+    const modulePath = await this.findClosestModule(dir);
+    if (modulePath) {
+      await addDeclarationToModule(modulePath, `${pascal}Service`, `./${kebab}.service`, 'provider');
+      console.log(`UPDATE ${modulePath.replace(process.cwd() + '/', '')}`);
+    }
   }
 
   private async generateModule(pascal: string, kebab: string): Promise<void> {
@@ -100,5 +114,23 @@ export class GenerateCommand {
     const templatePath = join(currentDir, '..', 'templates', 'generate', templateName);
     const template = await readFile(templatePath, 'utf8');
     return mustache.render(template, data);
+  }
+
+  private async findClosestModule(startDir: string): Promise<string | null> {
+    let currentDir = startDir;
+    while (currentDir !== dirname(process.cwd()) && currentDir !== '/') {
+      try {
+        const files = await readdir(currentDir);
+        for (const file of files) {
+          if (file.endsWith('.module.ts')) {
+            return join(currentDir, file);
+          }
+        }
+      } catch (err) {
+        // Ignore read errors
+      }
+      currentDir = dirname(currentDir);
+    }
+    return null;
   }
 }

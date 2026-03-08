@@ -1,6 +1,22 @@
-# @nemesisjs/cli
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nemesisjs/nemesis/main/assets/nemesis-logo.png" width="150" alt="NemesisJS Logo" />
+</p>
 
-The official Command Line Interface (CLI) for the NemesisJS ecosystem. It provides powerful scaffolding and code generation tools to accelerate your development workflow.
+<h1 align="center">@nemesisjs/cli</h1>
+
+<p align="center">
+  The official Command Line Interface (CLI) for the NemesisJS ecosystem.
+</p>
+
+<p align="center">
+  <a href="https://npmjs.com/package/@nemesisjs/cli" target="_blank"><img src="https://img.shields.io/npm/v/@nemesisjs/cli.svg" alt="NPM Version" /></a>
+  <a href="https://npmjs.com/package/@nemesisjs/cli" target="_blank"><img src="https://img.shields.io/npm/l/@nemesisjs/cli.svg" alt="Package License" /></a>
+  <a href="https://npmjs.com/package/@nemesisjs/cli" target="_blank"><img src="https://img.shields.io/npm/dm/@nemesisjs/cli.svg" alt="NPM Downloads" /></a>
+</p>
+
+<hr/>
+
+It provides powerful scaffolding and code generation tools to accelerate your development workflow.
 
 ## Features
 

@@ -2,15 +2,15 @@
 #  Publish: @nemesisjs/cli
 #
 #  What this does:
-#    1. Temporarily replaces "workspace:*" deps with "latest" so bun install
-#       can resolve them from npm (this repo is published standalone).
-#    2. Builds the CLI and copies templates into dist/.
-#    3. Pins the workspace deps to "^<version>" before publishing, so the
-#       published package.json has a correct semver range (not "latest").
-#    4. Publishes to npm with public access.
+#    1. Builds the CLI — compiles src/index.ts to dist/index.js and copies
+#       all Mustache templates into dist/templates/ for runtime access.
+#    2. Publishes to npm with public access.
 #
-#  Note: the CLI has no automated test suite of its own, so there is no
-#  separate test job. Add one here when CLI tests are introduced.
+#  The CLI has no runtime dependency on @nemesisjs/* packages (it is a pure
+#  code-generation tool), so no workspace rewriting is needed.
+#
+#  Note: no automated test suite exists for the CLI yet. Add a test job here
+#  (before the publish job) once CLI tests are introduced.
 #
 #  How to trigger:
 #    Actions tab → "Publish @nemesisjs/cli" → Run workflow
@@ -45,10 +45,7 @@ permissions:
 
 # ══════════════════════════════════════════════════════════════════════════════
 jobs:
-
   # ── Build & Publish ──────────────────────────────────────────────────────────
-  #  Uses the "npm" environment — add a required reviewer in repo settings if
-  #  you want a manual approval gate before every publish.
   publish:
     name: Build and publish to npm
     runs-on: ubuntu-latest
@@ -71,45 +68,13 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
 
-      # workspace:* won't resolve outside the monorepo — swap to "latest" so
-      # bun install can pull the already-published @nemesisjs/* packages from npm.
-      - name: Resolve workspace dependencies from npm (use latest published versions)
-        run: |
-          node -e "
-            const fs  = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            for (const section of ['dependencies', 'devDependencies', 'peerDependencies']) {
-              for (const [name, val] of Object.entries(pkg[section] ?? {})) {
-                if (val === 'workspace:*') pkg[section][name] = 'latest';
-              }
-            }
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-          "
-
       - name: Install dependencies
-        run: bun install --no-cache
+        run: bun install
 
       # Compiles src/index.ts → dist/index.js and copies all Mustache templates
-      # into dist/templates/ so the CLI can read them at runtime.
+      # into dist/templates/ so the CLI binary can read them at runtime.
       - name: Build CLI (compile + copy templates)
         run: bun run build
-
-      # The published package.json should have "^version" ranges, not "latest",
-      # so consumers get a predictable dependency — pin them now before publish.
-      - name: Pin workspace dependencies to a real semver range for the published package
-        run: |
-          node -e "
-            const fs  = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            const ver = pkg.version;
-            for (const section of ['dependencies', 'devDependencies', 'peerDependencies']) {
-              for (const [name, val] of Object.entries(pkg[section] ?? {})) {
-                if (val === 'latest') pkg[section][name] = '^' + ver;
-              }
-            }
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-            console.log('Pinned workspace deps to ^' + ver);
-          "
 
       - name: Publish to npm
         run: |

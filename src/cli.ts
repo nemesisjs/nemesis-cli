@@ -1,85 +1,87 @@
 /**
  * @nemesis-js/cli - CLI router
- *
- * Parses raw argv and dispatches to the appropriate command.
- * All heavy lifting is done by the command classes; this file stays thin.
  */
 
+import figlet from 'figlet';
+import gradient from 'gradient-string';
 import chalk from 'chalk';
+import * as p from '@clack/prompts';
 import { NewCommand } from './commands/new.js';
 import { GenerateCommand } from './commands/generate.js';
 import { UpdateCommand } from './commands/update.js';
 import { checkForUpdate } from './utils/update-checker.js';
 
+// ── Banner ─────────────────────────────────────────────────────────────────────
+
+function printBanner(): void {
+  const art = figlet.textSync('NEMESIS', { font: 'Slant' });
+  // Deep purple → hot pink → orange gradient
+  console.log(gradient(['#6C63FF', '#E040FB', '#FF6D00']).multiline(art));
+  console.log(
+    chalk.gray('  The Bun-native NemesisJS framework CLI\n'),
+  );
+}
+
 // ── Help text ──────────────────────────────────────────────────────────────────
 
-const HELP_TEXT = `
-${chalk.bold('NemesisJS CLI')}
-
-${chalk.bold('Usage:')}
-  nemesis <command> [options]
-
-${chalk.bold('Commands:')}
-  ${chalk.cyan('new <name>')}               Scaffold a new NemesisJS project
-  ${chalk.cyan('generate <type> <name>')}   Generate a component  (alias: ${chalk.cyan('g')})
-  ${chalk.cyan('serve')}                    Start dev server with hot reload
-  ${chalk.cyan('build')}                    Build for production
-  ${chalk.cyan('test')}                     Run tests
-  ${chalk.cyan('update')}                   Check for CLI updates
-
-${chalk.bold('Generate types:')}
-  ${chalk.cyan('controller')} (co)    Controller
-  ${chalk.cyan('service')}    (s)     Service
-  ${chalk.cyan('module')}     (mo)    Module + controller + service
-  ${chalk.cyan('resource')}   (res)   Full CRUD resource
-  ${chalk.cyan('guard')}      (gu)    Guard
-  ${chalk.cyan('pipe')}       (pi)    Pipe
-  ${chalk.cyan('filter')}     (f)     Exception filter
-
-${chalk.bold('Options:')}
-  new:
-    ${chalk.gray('--no-test')}        Skip generating the tests/ scaffold
-
-  generate / g:
-    ${chalk.gray('--no-spec')}        Skip generating the .spec.ts unit-test file
-
-${chalk.bold('Examples:')}
-  ${chalk.gray('nemesis new my-app')}
-  ${chalk.gray('nemesis new my-app --no-test')}
-  ${chalk.gray('nemesis generate controller users')}
-  ${chalk.gray('nemesis g s users')}
-  ${chalk.gray('nemesis g mo auth')}
-  ${chalk.gray('nemesis g res posts')}
-  ${chalk.gray('nemesis g co payment --no-spec')}
-  ${chalk.gray('nemesis update')}
-`;
+function printHelp(): void {
+  printBanner();
+  console.log(
+    [
+      chalk.bold('Usage:'),
+      `  ${chalk.cyan('nemesis')} ${chalk.white('<command>')} ${chalk.gray('[options]')}`,
+      '',
+      chalk.bold('Commands:'),
+      `  ${chalk.cyan('new')}  ${chalk.white('<name>')}                  Scaffold a new project`,
+      `  ${chalk.cyan('generate')} ${chalk.white('<type> <name>')}       Generate a component  ${chalk.gray('(alias: g)')}`,
+      `  ${chalk.cyan('serve')}                           Start dev server with hot reload`,
+      `  ${chalk.cyan('build')}                           Compile for production`,
+      `  ${chalk.cyan('test')}                            Run tests`,
+      `  ${chalk.cyan('update')}                          Check for CLI updates`,
+      '',
+      chalk.bold('Generate types:'),
+      `  ${chalk.cyan('controller')} ${chalk.gray('(co)')}   Controller`,
+      `  ${chalk.cyan('service')}    ${chalk.gray('(s)')}    Service`,
+      `  ${chalk.cyan('module')}     ${chalk.gray('(mo)')}   Module + controller + service`,
+      `  ${chalk.cyan('resource')}   ${chalk.gray('(res)')}  Full CRUD resource`,
+      `  ${chalk.cyan('guard')}      ${chalk.gray('(gu)')}   Guard`,
+      `  ${chalk.cyan('pipe')}       ${chalk.gray('(pi)')}   Pipe`,
+      `  ${chalk.cyan('filter')}     ${chalk.gray('(f)')}    Exception filter`,
+      '',
+      chalk.bold('Flags:'),
+      `  ${chalk.gray('--no-test')}   Skip e2e test scaffold  ${chalk.gray('(new)')}`,
+      `  ${chalk.gray('--no-spec')}   Skip .spec.ts file      ${chalk.gray('(generate)')}`,
+      '',
+      chalk.bold('Examples:'),
+      `  ${chalk.gray('nemesis new my-api')}`,
+      `  ${chalk.gray('nemesis g controller users')}`,
+      `  ${chalk.gray('nemesis g res posts')}`,
+      `  ${chalk.gray('nemesis g mo auth')}`,
+    ].join('\n'),
+  );
+  console.log('');
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** Returns true if the given flag is present in the args list. */
 function hasFlag(args: string[], flag: string): boolean {
   return args.includes(flag);
 }
 
-/**
- * Print an update banner if a newer CLI version is available.
- * Runs in the background — never blocks the main command.
- */
+/** Non-blocking background update check — prints banner if update found. */
 function backgroundUpdateCheck(): void {
   checkForUpdate()
     .then((info) => {
       if (info?.hasUpdate) {
         console.log(
-          chalk.yellow(
-            `\n  ⚡ Update available! ${chalk.gray(info.currentVersion)} → ${chalk.green(info.latestVersion)}` +
-              `\n  Run ${chalk.cyan('nemesis update')} to see upgrade instructions.\n`,
+          chalk.hex('#E040FB')(
+            `\n  ⚡ Update available  ${chalk.gray(info.currentVersion)} → ${chalk.bold.green(info.latestVersion)}\n` +
+            `  Run ${chalk.cyan('nemesis update')} to see upgrade instructions.\n`,
           ),
         );
       }
     })
-    .catch(() => {
-      /* silently ignore network errors */
-    });
+    .catch(() => { /* ignore network errors */ });
 }
 
 // ── CLI class ─────────────────────────────────────────────────────────────────
@@ -89,11 +91,10 @@ export class CLI {
     const command = args[0];
 
     if (!command || command === '--help' || command === '-h') {
-      console.log(HELP_TEXT);
+      printHelp();
       return;
     }
 
-    // Fire-and-forget background update check (skipped for `update` itself)
     if (command !== 'update') {
       backgroundUpdateCheck();
     }
@@ -102,13 +103,14 @@ export class CLI {
       // ── new ──────────────────────────────────────────────────────────────
       case 'new':
       case 'n': {
-        const name = args.find((a) => !a.startsWith('-') && a !== command);
-        if (!name) {
-          console.error(chalk.red('Error: Project name is required.'));
-          console.error('Usage: nemesis new <project-name>');
-          process.exit(1);
-        }
-        await new NewCommand().execute(name, {
+        printBanner();
+
+        // Name may or may not be provided — NewCommand handles the prompt
+        const nameArg = args.find((a) => !a.startsWith('-') && a !== command);
+
+        p.intro(chalk.bold.hex('#6C63FF')(' NemesisJS — New Project '));
+
+        await new NewCommand().execute(nameArg, {
           noTest: hasFlag(args, '--no-test'),
         });
         break;
@@ -122,8 +124,10 @@ export class CLI {
         const name = positional[1];
 
         if (!type || !name) {
-          console.error(chalk.red('Error: Type and name are required.'));
-          console.error('Usage: nemesis generate <type> <name>');
+          p.log.error('Type and name are required.');
+          console.log(`  ${chalk.gray('Usage:')} nemesis generate ${chalk.white('<type>')} ${chalk.white('<name>')}`);
+          console.log('');
+          console.log(new GenerateCommand().availableTypes());
           process.exit(1);
         }
         await new GenerateCommand().execute(type, name, {
@@ -134,7 +138,7 @@ export class CLI {
 
       // ── serve ─────────────────────────────────────────────────────────────
       case 'serve': {
-        console.log(chalk.gray('Starting NemesisJS dev server with hot reload…'));
+        p.log.info('Starting dev server with hot reload…');
         const proc = Bun.spawn(['bun', '--hot', 'src/main.ts'], {
           stdio: ['inherit', 'inherit', 'inherit'],
         });
@@ -144,7 +148,7 @@ export class CLI {
 
       // ── build ─────────────────────────────────────────────────────────────
       case 'build': {
-        console.log(chalk.gray('Building NemesisJS application…'));
+        p.log.info('Building application…');
         const proc = Bun.spawn(
           ['bun', 'build', './src/main.ts', '--outdir', './dist', '--target', 'bun'],
           { stdio: ['inherit', 'inherit', 'inherit'] },
@@ -155,22 +159,21 @@ export class CLI {
 
       // ── test ──────────────────────────────────────────────────────────────
       case 'test': {
-        const proc = Bun.spawn(['bun', 'test'], {
-          stdio: ['inherit', 'inherit', 'inherit'],
-        });
+        const proc = Bun.spawn(['bun', 'test'], { stdio: ['inherit', 'inherit', 'inherit'] });
         await proc.exited;
         break;
       }
 
       // ── update ────────────────────────────────────────────────────────────
       case 'update': {
+        p.intro(chalk.bold.hex('#6C63FF')(' NemesisJS — Update Check '));
         await new UpdateCommand().execute();
         break;
       }
 
       default:
-        console.error(chalk.red(`Unknown command: ${command}`));
-        console.log(HELP_TEXT);
+        p.log.error(`Unknown command: ${chalk.white(command)}`);
+        printHelp();
         process.exit(1);
     }
   }

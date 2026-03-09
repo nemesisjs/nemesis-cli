@@ -137,9 +137,9 @@ export class CLI {
       }
 
       // ── serve ─────────────────────────────────────────────────────────────
+      // Delegates to the project's "dev" script — respects package.json customisations.
       case 'serve': {
-        p.log.info('Starting dev server with hot reload…');
-        const proc = Bun.spawn(['bun', '--hot', 'src/main.ts'], {
+        const proc = Bun.spawn(['bun', 'run', 'dev'], {
           stdio: ['inherit', 'inherit', 'inherit'],
         });
         await proc.exited;
@@ -148,18 +148,18 @@ export class CLI {
 
       // ── build ─────────────────────────────────────────────────────────────
       case 'build': {
-        p.log.info('Building application…');
-        const proc = Bun.spawn(
-          ['bun', 'build', './src/main.ts', '--outdir', './dist', '--target', 'bun'],
-          { stdio: ['inherit', 'inherit', 'inherit'] },
-        );
+        const proc = Bun.spawn(['bun', 'run', 'build'], {
+          stdio: ['inherit', 'inherit', 'inherit'],
+        });
         await proc.exited;
         break;
       }
 
       // ── test ──────────────────────────────────────────────────────────────
       case 'test': {
-        const proc = Bun.spawn(['bun', 'test'], { stdio: ['inherit', 'inherit', 'inherit'] });
+        const proc = Bun.spawn(['bun', 'run', 'test'], {
+          stdio: ['inherit', 'inherit', 'inherit'],
+        });
         await proc.exited;
         break;
       }

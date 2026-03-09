@@ -20,6 +20,9 @@ const COLLECTION_PATH = join(
   __dirname, '..', '..', 'node_modules', '@nemesis-js', 'schematics', 'collection.json',
 );
 
+/** Canonical schematic names for the "module" type */
+const MODULE_TYPES = new Set(['module', 'mo']);
+
 export interface GenerateOptions {
   noSpec: boolean;
 }
@@ -28,13 +31,28 @@ export class GenerateCommand {
   async execute(type: string, name: string, options: GenerateOptions): Promise<void> {
     const engine = new SchematicEngine(COLLECTION_PATH);
 
-    // Spinner while the schematic runs (file I/O + module AST update)
+    // ── Module-specific prompt ─────────────────────────────────────────────
+    // When generating a module, ask whether to also scaffold controller + service.
+    let withFiles = true; // default: full module
+    if (MODULE_TYPES.has(type)) {
+      const answer = await p.confirm({
+        message: 'Would you like to generate a controller and service with this module?',
+        initialValue: true,
+      });
+      if (p.isCancel(answer)) { p.cancel('Operation cancelled.'); process.exit(0); }
+      withFiles = answer as boolean;
+    }
+
+    // ── Run the schematic ──────────────────────────────────────────────────
     const s = p.spinner();
     s.start(`Generating ${chalk.cyan(type)} ${chalk.white(name)}…`);
 
     let result;
     try {
-      result = await engine.run(type, name, { noSpec: options.noSpec });
+      result = await engine.run(type, name, {
+        noSpec: options.noSpec,
+        ...(MODULE_TYPES.has(type) ? { withFiles } : {}),
+      });
     } catch (err) {
       s.stop(chalk.red('Generation failed.'));
       const msg = err instanceof Error ? err.message : String(err);
@@ -46,7 +64,7 @@ export class GenerateCommand {
 
     s.stop('');
 
-    // ── NestJS-style file listing ─────────────────────────────────────────────
+    // ── NestJS-style file listing ─────────────────────────────────────────
     for (const op of result.operations) {
       const icon  = op.type === 'CREATE' ? chalk.green('CREATE') : chalk.yellow('UPDATE');
       const size  = formatBytes(op.size);
@@ -61,7 +79,7 @@ export class GenerateCommand {
     const rows: Array<[string, string, string]> = [
       ['controller', 'co',  'Controller'],
       ['service',    's',   'Service'],
-      ['module',     'mo',  'Module + controller + service'],
+      ['module',     'mo',  'Module (optionally with controller + service)'],
       ['resource',   'res', 'Full CRUD resource'],
       ['guard',      'gu',  'Guard'],
       ['pipe',       'pi',  'Pipe'],

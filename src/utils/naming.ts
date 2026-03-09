@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/cli - Naming utilities
+ * @nemesis-js/cli - Naming utilities
  */
 
 /** Convert a string to PascalCase */

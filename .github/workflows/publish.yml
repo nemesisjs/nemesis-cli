@@ -1,25 +1,25 @@
 # ══════════════════════════════════════════════════════════════════════════════
-#  Publish: @nemesisjs/cli
+#  Publish: @nemesis-js/cli
 #
 #  What this does:
 #    1. Builds the CLI — compiles src/index.ts to dist/index.js and copies
 #       all Mustache templates into dist/templates/ for runtime access.
 #    2. Publishes to npm with public access.
 #
-#  The CLI has no runtime dependency on @nemesisjs/* packages (it is a pure
+#  The CLI has no runtime dependency on @nemesis-js/* packages (it is a pure
 #  code-generation tool), so no workspace rewriting is needed.
 #
 #  Note: no automated test suite exists for the CLI yet. Add a test job here
 #  (before the publish job) once CLI tests are introduced.
 #
 #  How to trigger:
-#    Actions tab → "Publish @nemesisjs/cli" → Run workflow
+#    Actions tab → "Publish @nemesis-js/cli" → Run workflow
 #
 #  Required secret:
 #    NPM_TOKEN  — a npm "Automation" token with publish rights
 # ══════════════════════════════════════════════════════════════════════════════
 
-name: Publish @nemesisjs/cli
+name: Publish @nemesis-js/cli
 
 # ── Trigger ───────────────────────────────────────────────────────────────────
 on:

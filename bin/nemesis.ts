@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * @nemesisjs/cli - Main CLI entry point
+ * @nemesis-js/cli - Main CLI entry point
  *
  * Usage:
  *   nemesis new <project-name>        Create a new NemesisJS project

@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/cli - New command
+ * @nemesis-js/cli - New command
  *
  * Scaffolds a new NemesisJS project with all the boilerplate including:
  * - ESLint (flat config) + Prettier out of the box

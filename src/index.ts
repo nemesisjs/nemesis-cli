@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/cli
+ * @nemesis-js/cli
  *
  * NemesisJS CLI tool for project scaffolding and code generation.
  */

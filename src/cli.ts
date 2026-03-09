@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/cli - CLI entry-point
+ * @nemesis-js/cli - CLI entry-point
  */
 
 import { NewCommand } from './commands/new.js';

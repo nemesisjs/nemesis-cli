@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/cli - Generate command
+ * @nemesis-js/cli - Generate command
  *
  * Generates controllers, services, and modules from templates.
  * By default a `.spec.ts` unit-test file is also created alongside each

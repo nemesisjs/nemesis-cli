@@ -1,5 +1,5 @@
 {
-  "name": "@nemesisjs/cli",
+  "name": "@nemesis-js/cli",
   "version": "0.1.0",
   "type": "module",
   "description": "NemesisJS CLI - scaffolding and code generation",

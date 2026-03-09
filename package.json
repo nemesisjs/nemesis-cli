@@ -23,24 +23,24 @@
   },
   "exports": {
     ".": {
-      "bun":    "./src/index.ts",
-      "types":  "./src/index.ts",
-      "import": "./src/index.ts",
+      "bun":     "./src/index.ts",
+      "types":   "./src/index.ts",
+      "import":  "./src/index.ts",
       "default": "./src/index.ts"
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target bun && cp -rf src/templates dist/templates",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun",
     "test": "bun test"
   },
   "dependencies": {
+    "@nemesis-js/schematics": "^0.1.0",
     "chalk": "^5.3.0",
-    "figlet": "^1.11.0",
-    "mustache": "^4.2.0"
+    "figlet": "^1.11.0"
   },
   "devDependencies": {
     "typescript": "^5.7.0",
     "@types/bun": "latest",
-    "@types/mustache": "^4.2.5"
+    "@types/figlet": "^1.7.0"
   }
 }

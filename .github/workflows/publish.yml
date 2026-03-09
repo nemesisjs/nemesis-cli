@@ -2,18 +2,12 @@
 #  Publish: @nemesis-js/cli
 #
 #  What this does:
-#    1. Builds the CLI — compiles src/index.ts to dist/index.js and copies
-#       all Mustache templates into dist/templates/ for runtime access.
+#    1. Bumps the version in package.json.
 #    2. Publishes to npm with public access.
-#
-#  The CLI has no runtime dependency on @nemesis-js/* packages (it is a pure
-#  code-generation tool), so no workspace rewriting is needed.
-#
-#  Note: no automated test suite exists for the CLI yet. Add a test job here
-#  (before the publish job) once CLI tests are introduced.
+#    3. Creates and pushes a git tag  cli/vX.Y.Z.
 #
 #  How to trigger:
-#    Actions tab → "Publish @nemesis-js/cli" → Run workflow
+#    Actions tab → "Publish @nemesis-js/cli" → Run workflow → enter version
 #
 #  Required secret:
 #    NPM_TOKEN  — a npm "Automation" token with publish rights
@@ -21,31 +15,29 @@
 
 name: Publish @nemesis-js/cli
 
-# ── Trigger ───────────────────────────────────────────────────────────────────
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: 'Version to publish (e.g. 0.2.0)'
+        required: true
       dry_run:
-        description: "Dry run — build without publishing to npm"
+        description: 'Dry run — skip npm publish and git tag'
         required: false
-        default: "false"
+        default: 'false'
         type: choice
         options:
-          - "false"
-          - "true"
+          - 'false'
+          - 'true'
 
-# ── Safety: never allow two publish runs at the same time ─────────────────────
 concurrency:
   group: publish-cli
   cancel-in-progress: false
 
-# ── Minimal GitHub token permissions ─────────────────────────────────────────
 permissions:
-  contents: read
+  contents: write   # needed to push git tags
 
-# ══════════════════════════════════════════════════════════════════════════════
 jobs:
-  # ── Build & Publish ──────────────────────────────────────────────────────────
   publish:
     name: Build and publish to npm
     runs-on: ubuntu-latest
@@ -61,35 +53,44 @@ jobs:
         with:
           bun-version: latest
 
-      # Node is required for `npm publish` even though we build with Bun.
       - name: Set up Node (for npm publish)
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          registry-url: "https://registry.npmjs.org"
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Bump version in package.json
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('cli/package.json', 'utf8'));
+            pkg.version = '${{ github.event.inputs.version }}';
+            fs.writeFileSync('cli/package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
 
       - name: Install dependencies
         run: bun install
-
-      # Compiles src/index.ts → dist/index.js and copies all Mustache templates
-      # into dist/templates/ so the CLI binary can read them at runtime.
-      - name: Build CLI (compile + copy templates)
-        run: bun run build
+        working-directory: cli
 
       - name: Publish to npm
-        run: |
-          PKG_NAME=$(node -p "require('./package.json').name")
-          PKG_VER=$(node  -p "require('./package.json').version")
-          DRY_RUN="${{ github.event.inputs.dry_run }}"
-
-          echo "  Package : $PKG_NAME"
-          echo "  Version : $PKG_VER"
-
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "  Result  : skipped (dry run)"
-          else
-            npm publish --access public
-            echo "  Result  : ✓ published $PKG_NAME@$PKG_VER"
-          fi
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: npm publish --access public
+        working-directory: cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Dry run summary
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        run: echo "Dry run — skipped npm publish for @nemesis-js/cli@${{ github.event.inputs.version }}"
+
+      - name: Create and push git tag
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          TAG="cli/v${VERSION}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cli/package.json
+          git commit -m "chore(cli): release v${VERSION}" || echo "Nothing to commit"
+          git tag "${TAG}"
+          git push origin HEAD --tags
